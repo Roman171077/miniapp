@@ -83,3 +83,30 @@ export interface Subscriber {
   // created_at?: string;
   // updated_at?: string;
 }
+
+/**
+ * Запись рабочего времени исполнителя.
+ */
+export interface WorkTimeRecord {
+  id: number;
+  exec_id: number;
+  surname: string;
+  name: string | null;
+  work_date: string;  // ISO-строка
+  work_minutes: number;
+}
+
+/**
+ * Данные для создания новой записи рабочего времени.
+ */
+export interface CreateWorkTimeData {
+  exec_id: number;
+  work_date: string;   // ISO-строка
+  work_minutes: number;
+}
+
+/**
+ * Данные для обновления записи рабочего времени.
+ * Все поля необязательные.
+ */
+export interface UpdateWorkTimeData extends Partial<CreateWorkTimeData> {}
