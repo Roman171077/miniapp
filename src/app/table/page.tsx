@@ -91,15 +91,6 @@ export default function TablePage() {
     return result;
   }, [executors, records, fromDate, toDate]);
 
-  const [editableData, setEditableData] = useState<typeof tableData>([]);
-  useEffect(() => {
-    setEditableData(tableData);
-  }, [tableData]);
-
-  // Убираем редактирование данных
-  const handleSaveAll = () => {
-    alert("Редактирование невозможно на этой странице.");
-  };
 
   if (loading) {
     return <div className="p-6">Загрузка...</div>;
@@ -158,7 +149,7 @@ export default function TablePage() {
               </tr>
             </thead>
             <tbody>
-              {tableData.map((row, idx) => (
+              {tableData.map((row) => (
                 <tr key={row.exec_id}>
                   <td className="border p-2">{row.surname} {row.name}</td>
                   {Object.keys(row)

@@ -109,4 +109,4 @@ export interface CreateWorkTimeData {
  * Данные для обновления записи рабочего времени.
  * Все поля необязательные.
  */
-export interface UpdateWorkTimeData extends Partial<CreateWorkTimeData> {}
+export type UpdateWorkTimeData = Partial<CreateWorkTimeData>;

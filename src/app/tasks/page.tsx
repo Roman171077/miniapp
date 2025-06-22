@@ -20,7 +20,7 @@ import {
   localToUtc2359,
   groupByDate,
 } from "@/lib/utils/date";
-import type { Task, Executor } from "@/lib/types";
+import type { Executor } from "@/lib/types";
 
 export default function TasksPage() {
   const [tasks, setTasks] = useState<any[]>([]);
@@ -150,12 +150,6 @@ export default function TasksPage() {
     );
   };
 
-  const removeExecutorModal = (idx: number) =>
-    setSelectedTask((prev) =>
-      prev
-        ? { ...prev, executorIds: prev.executorIds.filter((_: any, i: number) => i !== idx) }
-        : prev
-    );
 
   const handleSave = async () => {
     if (!selectedTask) return;
@@ -292,7 +286,6 @@ export default function TasksPage() {
           onClose={() => setSelectedTask(null)}
           onChange={handleModalChange}
           onAddExecutor={addExecutorModal}
-          onRemoveExecutor={removeExecutorModal}
           onSave={handleSave}
         />
       )}

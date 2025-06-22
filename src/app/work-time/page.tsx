@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { eachDayOfInterval, formatISO, parseISO } from "date-fns";
 import { getExecutors, getWorkTimes, createWorkTime, updateWorkTime } from "@/lib/api/tasks";
-import { Executor, WorkTimeRecord, CreateWorkTimeData, UpdateWorkTimeData } from "@/lib/types"; // импортируем типы
+import { Executor, WorkTimeRecord } from "@/lib/types"; // импортируем типы
 import { useUserRole } from "@/context/UserRoleContext";
 
 export default function WorkTimePage() {

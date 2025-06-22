@@ -23,7 +23,6 @@ export interface TaskModalProps {
   onClose: () => void;
   onChange: (field: string, value: any) => void;
   onAddExecutor: (e: React.ChangeEvent<HTMLSelectElement>) => void;
-  onRemoveExecutor: (idx: number) => void;
   onSave: () => void;
 }
 
@@ -34,7 +33,6 @@ export default function TaskModal({
   onClose,
   onChange,
   onAddExecutor,
-  onRemoveExecutor,
   onSave,
 }: TaskModalProps) {
   const originalExecutorIds = useRef<number[]>([]);
