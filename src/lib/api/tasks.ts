@@ -24,11 +24,7 @@ export interface CreateWorkTimeData {
  * Данные для обновления существующей записи рабочего времени.
  * Все поля необязательные → чтобы можно было менять только необходимые.
  */
-export interface UpdateWorkTimeData extends Partial<CreateWorkTimeData> {
-  // Поля CreateWorkTimeData уже частично описывают, можно добавить id,
-  // если хотите отправлять его в теле. Но в нашем примере мы передаём id
-  // в URL (PUT /work_times/{id}), поэтому здесь достаточно CreateWorkTimeData.
-}
+export type UpdateWorkTimeData = Partial<CreateWorkTimeData>;
 // Данные для создания новой задачи
 export interface CreateTaskData {
   address_raw: string;
