@@ -1,66 +1,29 @@
-// SubscribersSearchTwoField.tsx
-// – два поля (Адрес, Дом)
-// – подсказки с subsequence-поиском и полной сортировкой
-// – сортировка результатов по город → район → улица → дом
-
 "use client";
 
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import Fuse from "fuse.js";
 import { getSubscribers } from "@/lib/api/tasks";
 import { Subscriber } from "@/lib/types";
 import SubscriberList from "@/components/Task/SubscriberList";
 
-/* ------------------------- helpers: нормализация ------------------- */
-const normalize = (str: string) => str.toLowerCase().replace(/[\s,.-]/g, "");
-
-/* subsequence-поиск:  "анр" ⟹ "Ангарск"  */
-function subsequenceMatch(token: string, target: string) {
-  let j = 0;
-  token = token.toLowerCase();
-  target = target.toLowerCase();
-  for (let i = 0; i < target.length && j < token.length; i++) {
-    if (token[j] === target[i]) j++;
-  }
-  return j === token.length;
-}
-
-/* мульти-токенный subsequence: "анр жк" → ... */
-function tokenFuzzyMatch(query: string, target: string) {
-  const tokens = query.trim().split(/\s+/).filter(Boolean);
-  if (!tokens.length) return false;
-  const tgt = target.toLowerCase();
-  return tokens.every(tok => subsequenceMatch(tok, tgt));
-}
-
-/* ---------------------- helpers: сортировка ------------------------ */
+/* ---------- helpers ---------- */
+const normalize = (s: string) => s.toLowerCase().replace(/[\s,.-]/g, "");
+const tokensPrefix = (q: string, t: string) => {
+  const toks = q.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  if (!toks.length) return false;
+  const words = t.toLowerCase().split(/\s+/);
+  return toks.every(tok => words.some(w => w.startsWith(tok)));
+};
 const cmpStr = (a: string, b: string) => a.localeCompare(b, "ru");
 const cmpHouse = (a: string, b: string) => {
-  const na = parseInt(a, 10);
-  const nb = parseInt(b, 10);
-  if (!isNaN(na) && !isNaN(nb) && na !== nb) return na - nb;
-  return cmpStr(a, b);
+  const na = parseInt(a, 10), nb = parseInt(b, 10);
+  return !isNaN(na) && !isNaN(nb) && na !== nb ? na - nb : cmpStr(a, b);
 };
+const cmpSubs = (a: Subscriber, b: Subscriber) =>
+  cmpStr(a.city, b.city) ||
+  cmpStr(a.district ?? "", b.district ?? "") ||
+  cmpStr(a.street ?? "", b.street ?? "") ||
+  cmpHouse(a.house.toString(), b.house.toString());
 
-function cmpHouses(a: HouseItem, b: HouseItem) {
-  return (
-    cmpStr(a.city, b.city)      ||
-    cmpStr(a.district, b.district) ||
-    cmpStr(a.street, b.street)  ||
-    cmpHouse(a.house, b.house)
-  );
-}
-
-function cmpSubs(a: Subscriber, b: Subscriber) {
-  return (
-    cmpStr(a.city, b.city)                               ||
-    cmpStr(a.district ?? "", b.district ?? "")           ||
-    cmpStr(a.street ?? "", b.street ?? "")               ||
-    cmpHouse(a.house.toString(), b.house.toString())
-  );
-}
-
-/* ------------------- тип для списка домов ------------------------- */
 interface HouseItem {
   display: string;
   house: string;
@@ -69,172 +32,176 @@ interface HouseItem {
   street: string;
 }
 
-/* ===================== основной компонент ========================= */
+/* =============== компонент =============== */
 export default function SubscribersSearchTwoField() {
   const [subs, setSubs] = useState<Subscriber[]>([]);
   const [loading, setLoading] = useState(false);
 
-  /* --- значения полей --- */
+  /* поля */
   const [addressVal, setAddressVal] = useState("");
-  const [houseVal, setHouseVal] = useState("");
+  const [houseVal, setHouseVal]     = useState("");
 
-  /* --- подсказки --- */
-  const [addrSug, setAddrSug]   = useState<string[]>([]);
+  /* подсказки */
+  const [addrSug,  setAddrSug]  = useState<string[]>([]);
   const [houseSug, setHouseSug] = useState<string[]>([]);
 
-  /* --- фиксированный ключ адреса (city|district|street) --- */
   const [addrKey, setAddrKey] = useState<string | null>(null);
-
-  /* --- найденные абоненты --- */
   const [filtered, setFiltered] = useState<Subscriber[]>([]);
 
-  /* ------------------- загрузка подписчиков ------------------------ */
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const data = await getSubscribers();
-      setSubs(data);
-      setFiltered(data.sort(cmpSubs));      // сразу отсортировано
-    } finally {
+  /* ---------- загрузка ---------- */
+  useEffect(() => {
+    (async () => {
+      setLoading(true);
+      const data   = await getSubscribers();
+      const sorted = [...data].sort(cmpSubs);  // единожды сортируем
+      setSubs(sorted);
+      setFiltered(sorted);
       setLoading(false);
-    }
+    })();
   }, []);
 
-  useEffect(() => { load(); }, [load]);
-
-  /* -------- подготовка короткого списка и карты домов ------------- */
+  /* ---------- shortList + houseMap ---------- */
   const { shortList, houseMap } = useMemo(() => {
     const short: { display: string; key: string }[] = [];
-    const houses = new Map<string, HouseItem[]>();
+    const map = new Map<string, HouseItem[]>();
 
     subs.forEach(s => {
-      const dispAddr = [s.city, s.district, s.street].filter(Boolean).join(", ");
+      const dispAddr = [s.city, s.district, s.street].filter(Boolean).join(" ");
       const key = normalize(dispAddr);
+
       if (!short.find(it => it.key === key)) short.push({ display: dispAddr, key });
 
-      const dispFull = `${dispAddr}, ${s.house}`;
       const item: HouseItem = {
-        display: dispFull,
+        display: `${dispAddr} ${s.house}`,
         house: s.house.toString(),
         city: s.city,
         district: s.district ?? "",
         street: s.street ?? "",
       };
-      if (!houses.has(key)) houses.set(key, []);
-      houses.get(key)!.push(item);
+      map.set(key, [...(map.get(key) ?? []), item].sort((a, b) =>
+        cmpStr(a.city, b.city) ||
+        cmpStr(a.district, b.district) ||
+        cmpStr(a.street, b.street) ||
+        cmpHouse(a.house, b.house)
+      ));
     });
 
-    /* сортируем каждую улицу внутри карты сразу */
-    houses.forEach(arr => arr.sort(cmpHouses));
-
-    return { shortList: short, houseMap: houses };
+    short.sort((a, b) => cmpStr(a.display, b.display));
+    return { shortList: short, houseMap: map };
   }, [subs]);
 
-  /* ---------------- подсказки для поля «Адрес» --------------------- */
+  /* ---------- подсказки адреса ---------- */
   const refreshAddrSug = useCallback((val: string) => {
     const q = val.trim();
-    let list: string[];
-    if (q) {
-      list = shortList
-        .filter(it => tokenFuzzyMatch(q, it.display))
-        .slice(0, 10)
-        .map(it => it.display);
-    } else {
-      list = shortList.slice(0, 10).map(it => it.display);
-    }
-    setAddrSug(list);
+    const list = q
+      ? shortList.filter(it => tokensPrefix(q, it.display)).slice(0, 10)
+      : shortList.slice(0, 10);
+    setAddrSug(list.map(it => it.display));
   }, [shortList]);
 
-  const handleAddrChange = (val: string) => {
-    setAddressVal(val);
-    setAddrKey(null);
-    setHouseVal("");
-    setHouseSug([]);
-    refreshAddrSug(val);
-  };
-  const handleAddrFocus = () => refreshAddrSug(addressVal);
-  const handleAddrBlur  = () => setTimeout(() => setAddrSug([]), 100);
-  const handleAddrSelect = (display: string) => {
-    setAddressVal(display);
-    setAddrSug([]);
-    setAddrKey(normalize(display));
-  };
-
-  /* ---------------- подсказки для поля «Дом» ----------------------- */
+  /* ---------- подсказки домов ---------- */
   const buildHousePool = useCallback((): HouseItem[] => {
     if (addrKey && houseMap.has(addrKey)) return houseMap.get(addrKey)!;
 
-    /* если адрес введён вручную, fuzzy-ищем совпадения */
     if (addressVal.trim()) {
-      const fuse = new Fuse(Array.from(houseMap.values()).flat(), {
-        keys: ["display"], threshold: 0.3, ignoreLocation: true,
-      });
-      return fuse.search(addressVal).map(r => r.item as HouseItem);
+      return [...houseMap.values()].flat()
+        .filter(h => tokensPrefix(addressVal, h.display));
     }
-    /* иначе весь список */
-    return Array.from(houseMap.values()).flat();
+    return [...houseMap.values()].flat();
   }, [addrKey, addressVal, houseMap]);
 
   const refreshHouseSug = useCallback((val: string) => {
-    const pattern = val.toLowerCase();
-    const pool = buildHousePool().sort(cmpHouses);
-    const filtered = pattern
-      ? pool.filter(x => x.house.toLowerCase().startsWith(pattern))
+    const pool = buildHousePool();
+    const list = val
+      ? pool.filter(h => h.house.toLowerCase().startsWith(val.toLowerCase()))
       : pool;
-    setHouseSug(filtered.map(x => x.display));   // теперь без ограничения
+    setHouseSug(list.map(h => h.display));
   }, [buildHousePool]);
 
-  const handleHouseChange = (val: string) => {
-    setHouseVal(val);
-    refreshHouseSug(val);
+  /* ---------- очистители ---------- */
+  const clearAddress = () => {
+    setAddressVal(""); setAddrKey(null);
+    setAddrSug([]); setHouseVal(""); setHouseSug([]);
   };
-  const handleHouseFocus  = () => refreshHouseSug(houseVal);
-  const handleHouseBlur   = () => setTimeout(() => setHouseSug([]), 100);
-  const handleHouseSelect = (display: string) => {
-    const parts = display.split(/,\s*/);
-    setHouseVal(parts[parts.length - 1]);   // вставляем ТОЛЬКО дом
-    setHouseSug([]);
+  const clearHouse = () => {
+    setHouseVal(""); setHouseSug([]);
   };
 
-  /* -------------------------- кнопка «Найти» ------------------------ */
+  /* ---------- «Найти» с поддержкой диапазонов ---------- */
   const handleFind = () => {
-    const addrNorm  = normalize(addressVal);
-    const houseNorm = houseVal.toLowerCase();
+    const addrQuery = addressVal.trim();
+    const houseQuery = houseVal.trim().replace(/\s+/g, "");
+
+    /* проверяем: есть ли дефис внутри строки дома */
+    const rangeRE = /^(\d*)-(\d*)$/;   // группа 1 = start?, группа 2 = end?
+    const m = houseQuery.match(rangeRE);
 
     const res = subs.filter(s => {
-      const key = normalize([s.city, s.district, s.street].filter(Boolean).join(", "));
-      const houseStr = s.house.toString().toLowerCase();
-      return (addrNorm ? key.includes(addrNorm) : true) &&
-             (houseNorm ? houseStr.startsWith(houseNorm) : true);
-    }).sort(cmpSubs);
-    setFiltered(res);
+      /* --- фильтр по адресу --- */
+      const disp = [s.city, s.district, s.street].filter(Boolean).join(" ");
+      const okAddr = addrQuery ? tokensPrefix(addrQuery, disp) : true;
+
+      /* --- фильтр по дому --- */
+      let okHouse = true;
+      if (m) {
+        const [ , startStr, endStr ] = m;
+        const n = parseInt(s.house.toString(), 10);          // числовая часть дома
+        const start = startStr ? parseInt(startStr, 10) : null;
+        const end   = endStr   ? parseInt(endStr,   10) : null;
+
+        okHouse =
+          (start !== null ? n >= start : true) &&
+          (end   !== null ? n <= end   : true);
+      } else if (houseQuery) {
+        okHouse = s.house.toString().toLowerCase().startsWith(houseQuery.toLowerCase());
+      }
+      return okAddr && okHouse;
+    });
+
+    setFiltered(res);   // порядок сохраняется, т.к. subs уже отсортирован
   };
 
-  /* ---------------------------- UI ---------------------------------- */
+  /* ---------- UI ---------- */
   if (loading) return <p className="text-center">Загрузка…</p>;
 
   return (
     <div className="p-5 max-w-xl mx-auto space-y-4">
       <h1 className="text-center font-bold text-xl mb-2">Абоненты</h1>
 
-      {/* === Поле «Адрес» === */}
+      {/* ===== Адрес ===== */}
       <div className="relative">
         <label className="block text-sm text-gray-600 mb-1">Адрес</label>
         <input
           value={addressVal}
-          onChange={e => handleAddrChange(e.target.value)}
-          onFocus={handleAddrFocus}
-          onBlur={handleAddrBlur}
-          placeholder="Город, район, улица"
-          className="w-full p-2 border rounded placeholder:text-gray-400"
+          onChange={e => {
+            const v = e.target.value;
+            setAddressVal(v); setAddrKey(null);
+            setHouseVal(""); setHouseSug([]);
+            refreshAddrSug(v);
+          }}
+          onFocus={() => refreshAddrSug(addressVal)}
+          onBlur={() => setTimeout(() => setAddrSug([]), 100)}
+          placeholder="Город район улица"
+          className="w-full p-2 border rounded placeholder:text-gray-400 pr-8"
         />
+        {addressVal && (
+          <button
+            onClick={clearAddress}
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            tabIndex={-1}
+          >
+            ×
+          </button>
+        )}
         {addrSug.length > 0 && (
           <ul className="absolute z-10 bg-white border w-full max-h-60 overflow-y-auto shadow-lg">
             {addrSug.map((s, i) => (
               <li
                 key={i}
                 className="p-2 hover:bg-gray-100 cursor-pointer"
-                onMouseDown={() => handleAddrSelect(s)}
+                onMouseDown={() => {
+                  setAddressVal(s); setAddrKey(normalize(s)); setAddrSug([]);
+                }}
               >
                 {s}
               </li>
@@ -243,24 +210,36 @@ export default function SubscribersSearchTwoField() {
         )}
       </div>
 
-      {/* === Поле «Дом» === */}
+      {/* ===== Дом ===== */}
       <div className="relative">
         <label className="block text-sm text-gray-600 mb-1">Дом</label>
         <input
           value={houseVal}
-          onChange={e => handleHouseChange(e.target.value)}
-          onFocus={handleHouseFocus}
-          onBlur={handleHouseBlur}
-          placeholder="Номер дома"
-          className="w-full p-2 border rounded placeholder:text-gray-400"
+          onChange={e => { setHouseVal(e.target.value); refreshHouseSug(e.target.value); }}
+          onFocus={() => refreshHouseSug(houseVal)}
+          onBlur={() => setTimeout(() => setHouseSug([]), 100)}
+          placeholder="Номер дома или диапазон 5-10"
+          className="w-full p-2 border rounded placeholder:text-gray-400 pr-8"
         />
+        {houseVal && (
+          <button
+            onClick={clearHouse}
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            tabIndex={-1}
+          >
+            ×
+          </button>
+        )}
         {houseSug.length > 0 && (
           <ul className="absolute z-10 bg-white border w-full max-h-60 overflow-y-auto shadow-lg">
             {houseSug.map((s, i) => (
               <li
                 key={i}
                 className="p-2 hover:bg-gray-100 cursor-pointer"
-                onMouseDown={() => handleHouseSelect(s)}
+                onMouseDown={() => {
+                  const h = s.split(/\s+/).pop()!;
+                  setHouseVal(h); setHouseSug([]);
+                }}
               >
                 {s}
               </li>
@@ -269,7 +248,7 @@ export default function SubscribersSearchTwoField() {
         )}
       </div>
 
-      {/* === Кнопка «Найти» === */}
+      {/* ===== Найти ===== */}
       <button
         onClick={handleFind}
         className="w-full p-2 bg-blue-600 text-white rounded hover:bg-blue-700"
@@ -277,7 +256,7 @@ export default function SubscribersSearchTwoField() {
         Найти
       </button>
 
-      {/* === Список абонентов === */}
+      {/* список абонентов */}
       <SubscriberList subscribers={filtered} />
     </div>
   );
