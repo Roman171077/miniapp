@@ -115,14 +115,6 @@ def remove_task_executor(task_id: int, exec_id: int, db_sess: Session = Depends(
         raise HTTPException(404, "Assignment not found")
 
 # — остальное (nodes, zones, beacon, parking) оставляем без изменений —
-@app.get(
-  "/beacon-coordinates",
-  response_model=list[schemas.BeaconCoordinate],
-)
-@app.get("/beacon-coordinates", response_model=list[schemas.BeaconCoordinate])
-@app.get("/beacon-coordinates", response_model=list[schemas.BeaconCoordinate])
-
-# В main.py
 @app.get("/beacon-coordinates", response_model=list[schemas.BeaconCoordinate])
 def read_beacon_coords_by_day(
     date_str: str = Query(..., regex=r"^\d{4}-\d{2}-\d{2}$", description="Дата в формате YYYY-MM-DD"),
