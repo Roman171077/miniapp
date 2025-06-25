@@ -29,13 +29,9 @@ export function UserRoleProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Локальная отладка или обход проверки
-    if (
-      (typeof window !== "undefined" &&
-        ['localhost', '127.0.0.1'].includes(window.location.hostname)) ||
-      process.env.NEXT_PUBLIC_BYPASS_GUARD === '1'
-    ) {
-      setRole('admin') // для разработки считаем админом
+    // Опциональный обход проверки по переменной окружения
+    if (process.env.NEXT_PUBLIC_BYPASS_GUARD === '1') {
+      setRole('admin')
       setLoading(false)
       return
     }
