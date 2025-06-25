@@ -16,7 +16,7 @@ export default function Header() {
   const links = [
     { href: '/', label: 'Главная', show: true },
     { href: "/table", label: "Табель", show: true }, // добавляем ссылку на таблицу
-    { href: '/tasks', label: 'Задачи', show: role === 'admin' },
+    { href: '/tasks', label: 'Задачи', show: true },
     { href: '/map', label: 'Карта', show: true },
     { href: '/subscribers', label: 'Абоненты', show: true },
     { href: '/work-time', label: 'Время', show: role === 'admin' },
