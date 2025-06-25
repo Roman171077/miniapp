@@ -4,10 +4,9 @@ import { useEffect, useMemo, useState } from "react";
 import { eachDayOfInterval, formatISO, parseISO } from "date-fns";
 import { getExecutors, getWorkTimes, createWorkTime, updateWorkTime } from "@/lib/api/tasks";
 import { Executor, WorkTimeRecord } from "@/lib/types"; // импортируем типы
-import { useUserRole } from "@/context/UserRoleContext";
+import RoleGuard from "@/components/RoleGuard";
 
 export default function WorkTimePage() {
-  const { role, loading } = useUserRole();
 
   // Состояния для ввода диапазона
   const [fromDate, setFromDate] = useState<string>(""); // ISO, например "2025-06-01"
@@ -144,19 +143,8 @@ const handleSaveAll = async () => {
 };
 
 
-  if (loading) {
-    return <div className="p-6">Загрузка...</div>;
-  }
-  if (role !== "admin") {
-    return (
-      <div className="p-6">
-        <h1 className="text-2xl font-semibold mb-3">Доступ запрещён</h1>
-        <p>Только администратор может видеть эту страницу.</p>
-      </div>
-    );
-  }
-
   return (
+    <RoleGuard role="admin">
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-4">Учёт рабочего времени</h1>
 
@@ -248,5 +236,6 @@ const handleSaveAll = async () => {
         <p className="text-gray-600">Пожалуйста, выберите корректный диапазон дат.</p>
       )}
     </div>
+    </RoleGuard>
   );
 }

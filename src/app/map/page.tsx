@@ -95,11 +95,11 @@ export default function PlaybackPage() {
   }, [playing, coords, speed]);
 
   return (
-    <div style={{ padding: 20 }}>
-      <h1 style={{ marginBottom: 16 }}>Проигрыватель маршрута</h1>
+    <div className="p-5">
+      <h1 className="mb-4">Проигрыватель маршрута</h1>
 
       {/* Выбор даты */}
-      <div style={{ marginBottom: 16 }}>
+      <div className="mb-4">
         <label>
           Дата:&nbsp;
           <input
@@ -111,14 +111,7 @@ export default function PlaybackPage() {
       </div>
 
       {/* Управление воспроизведением */}
-      <div
-        style={{
-          marginBottom: 16,
-          display: "flex",
-          alignItems: "center",
-          gap: "1rem",
-        }}
-      >
+      <div className="mb-4 flex items-center gap-4">
         <button onClick={() => setPlaying((p) => !p)}>
           {playing ? "⏸ Стоп" : "▶️ Старт"}
         </button>
@@ -155,21 +148,14 @@ export default function PlaybackPage() {
           max={coords.length - 1}
           value={index}
           onChange={(e) => setIndex(Number(e.target.value))}
-          style={{ width: "100%", marginBottom: 16 }}
+          className="w-full mb-4"
         />
       ) : (
         <p>Нет данных для {date}</p>
       )}
 
       {/* Контейнер для карты */}
-      <div
-        ref={mapRef}
-        style={{
-          width: "100%",
-          height: "400px",
-          border: "1px solid #ddd",
-        }}
-      />
+      <div ref={mapRef} className="w-full h-[400px] border border-gray-300" />
     </div>
   );
 }
