@@ -1,34 +1,14 @@
 // src/lib/api/tasks.ts
 
-import { Task, Executor, Subscriber } from "../types";
+import {
+  Task,
+  Executor,
+  Subscriber,
+  WorkTimeRecord,
+  CreateWorkTimeData,
+  UpdateWorkTimeData,
+} from "@/lib/types";
 
-export interface WorkTimeRecord {
-  id: number;
-  exec_id: number;
-  surname: string;
-  name: string | null;
-  work_date: string;    // ISO-строка, например "2025-06-01"
-  work_minutes: number; // кол-во минут за этот день
-}
-
-/**
- * Данные, которые отправляем на сервер при создании записи рабочего времени.
- */
-export interface CreateWorkTimeData {
-  exec_id: number;
-  work_date: string;    // ISO-строка, например "2025-06-01"
-  work_minutes: number;
-}
-
-/**
- * Данные для обновления существующей записи рабочего времени.
- * Все поля необязательные → чтобы можно было менять только необходимые.
- */
-export interface UpdateWorkTimeData extends Partial<CreateWorkTimeData> {
-  // Поля CreateWorkTimeData уже частично описывают, можно добавить id,
-  // если хотите отправлять его в теле. Но в нашем примере мы передаём id
-  // в URL (PUT /work_times/{id}), поэтому здесь достаточно CreateWorkTimeData.
-}
 // Данные для создания новой задачи
 export interface CreateTaskData {
   address_raw: string;

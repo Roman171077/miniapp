@@ -12,11 +12,13 @@ type Executor = {
 
 type UserRoleContextType = {
   role: Executor['role'] | null
+  userId: number | null
   loading: boolean
 }
 
 const UserRoleContext = createContext<UserRoleContextType>({
   role: null,
+  userId: null,
   loading: true,
 })
 
@@ -26,6 +28,7 @@ export function useUserRole() {
 
 export function UserRoleProvider({ children }: { children: ReactNode }) {
   const [role, setRole] = useState<Executor['role'] | null>(null)
+  const [userId, setUserId] = useState<number | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -36,6 +39,7 @@ export function UserRoleProvider({ children }: { children: ReactNode }) {
       process.env.NEXT_PUBLIC_BYPASS_GUARD === '1'
     ) {
       setRole('admin') // для разработки считаем админом
+      setUserId(1)
       setLoading(false)
       return
     }
@@ -43,6 +47,7 @@ export function UserRoleProvider({ children }: { children: ReactNode }) {
     const tg = (window as any).Telegram?.WebApp
     if (!tg) {
       setRole(null)
+      setUserId(null)
       setLoading(false)
       return
     }
@@ -51,9 +56,11 @@ export function UserRoleProvider({ children }: { children: ReactNode }) {
     const user = tg.initDataUnsafe?.user
     if (!user?.id) {
       setRole(null)
+      setUserId(null)
       setLoading(false)
       return
     }
+    setUserId(user.id)
 
     const API = process.env.NEXT_PUBLIC_API_URL
     fetch(`${API}/me`, {
@@ -68,6 +75,7 @@ export function UserRoleProvider({ children }: { children: ReactNode }) {
       })
       .catch(() => {
         setRole(null)
+        setUserId(null)
       })
       .finally(() => {
         setLoading(false)
@@ -75,7 +83,7 @@ export function UserRoleProvider({ children }: { children: ReactNode }) {
   }, [])
 
   return (
-    <UserRoleContext.Provider value={{ role, loading }}>
+    <UserRoleContext.Provider value={{ role, userId, loading }}>
       {children}
     </UserRoleContext.Provider>
   )

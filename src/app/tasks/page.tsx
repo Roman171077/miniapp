@@ -21,6 +21,7 @@ import {
   groupByDate,
 } from "@/lib/utils/date";
 import type { Task, Executor } from "@/lib/types";
+import { useUserRole } from "@/context/UserRoleContext";
 
 export default function TasksPage() {
   const [tasks, setTasks] = useState<any[]>([]);
@@ -31,8 +32,10 @@ export default function TasksPage() {
   const [isCreating, setIsCreating] = useState(false);
   const [isCreatingSubscriber, setIsCreatingSubscriber] = useState(false);
   const [selectedTask, setSelectedTask] = useState<EditableTask | null>(null);
+  const { userId, loading: userLoading } = useUserRole();
 
-  const userId = 1;
+  if (userLoading) return <p>Загрузка…</p>;
+  if (!userId) return <p className="p-4">Пользователь не определён</p>;
 
   const loadExecutors = useCallback(async () => {
     try {
