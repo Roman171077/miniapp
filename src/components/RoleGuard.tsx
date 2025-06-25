@@ -4,6 +4,7 @@ import { useUserRole } from '@/context/UserRoleContext'
 
 export default function RoleGuard({ role: required, children }:{ role: 'admin' | 'user'; children: ReactNode }) {
   const { role, loading } = useUserRole()
+  console.log('[RoleGuard] required:', required, 'current:', role, 'loading:', loading)
   if (loading) {
     return <div className="p-6">Загрузка...</div>
   }
