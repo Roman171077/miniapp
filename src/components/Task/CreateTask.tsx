@@ -268,8 +268,7 @@ export default function CreateTask({
             value={task.address_raw}
             onChange={(e) => handleChange('address_raw', e.target.value)}
             rows={2}
-            className="w-full px-2 py-1 border rounded resize-none"
-            style={{ minHeight: 40 }}
+            className="w-full px-2 py-1 border rounded resize-none min-h-[40px]"
           />
         </div>
 

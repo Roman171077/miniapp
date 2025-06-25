@@ -195,38 +195,18 @@ export default function TasksPage() {
   const grouped = groupByDate(visible);
 
   return (
-    <div style={{ padding: 20 }}>
+    <div className="p-5">
       {/* Full-width New Task button on top */}
-      <div style={{ width: "100%", marginBottom: 20 }}>
+      <div className="w-full mb-5 space-y-2">
         <button
           onClick={() => setIsCreating(true)}
-          style={{
-            width: "100%",
-            backgroundColor: "#007bff",
-            color: "#fff",
-            padding: "10px",
-            fontSize: "16px",
-            fontWeight: "bold",
-            border: "none",
-            borderRadius: "4px",
-            cursor: "pointer",
-          }}
+          className="w-full bg-blue-600 text-white py-2 text-base font-bold rounded"
         >
           + Новая задача
         </button>
         <button
           onClick={() => setIsCreatingSubscriber(true)}
-          style={{
-            width: "100%",
-            backgroundColor: "#28a745",
-            color: "#fff",
-            padding: "10px",
-            fontSize: "16px",
-            fontWeight: "bold",
-            border: "none",
-            borderRadius: "4px",
-            cursor: "pointer",
-          }}
+          className="w-full bg-green-600 text-white py-2 text-base font-bold rounded"
         >
           + Новый абонент
         </button>
@@ -234,12 +214,12 @@ export default function TasksPage() {
       </div>
 
       {/* Centered bold header */}
-      <h1 style={{ textAlign: "center", fontWeight: "bold", margin: "10px 0" }}>
+      <h1 className="text-center font-bold my-2.5">
         Задачи
       </h1>
 
       {/* Filter selector aligned left */}
-      <div style={{ textAlign: "left", marginBottom: 20 }}>
+      <div className="text-left mb-5">
         <label>
           Тип:&nbsp;
           <select value={filterType} onChange={(e) => setFilterType(e.target.value as any)}>

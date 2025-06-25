@@ -73,7 +73,7 @@ export default function PlaybackPage() {
   }, [playing, coords]);
 
   return (
-    <div style={{ padding: 20 }}>
+    <div className="p-5">
       {/* Подгружаем скрипт один раз */}
       <Script
         src={`https://api-maps.yandex.ru/2.1/?apikey=${process.env.NEXT_PUBLIC_YANDEX_API_KEY}&lang=ru_RU`}
@@ -93,11 +93,11 @@ export default function PlaybackPage() {
       </label>
 
       {/* Управление воспроизведением */}
-      <div style={{ margin: "10px 0" }}>
+      <div className="my-2.5">
         <button onClick={() => setPlaying((p) => !p)}>
           {playing ? "⏸ Стоп" : "▶️ Старт"}
         </button>
-        <span style={{ marginLeft: 15 }}>
+        <span className="ml-4">
           {coords[index]?.recorded_at ?? "--"}
         </span>
       </div>
@@ -109,12 +109,12 @@ export default function PlaybackPage() {
         max={coords.length ? coords.length - 1 : 0}  // Добавляем защиту
         value={index}
         onChange={(e) => setIndex(Number(e.target.value))}
-        style={{ width: "100%" }}
+        className="w-full"
       />
       {/* Контейнер для карты */}
       <div
         ref={mapRef}
-        style={{ width: "100%", height: "400px", marginTop: 20 }}
+        className="w-full h-[400px] mt-5"
       />
     </div>
   );
