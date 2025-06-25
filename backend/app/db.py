@@ -11,6 +11,19 @@ DB_USER = os.getenv("DB_USER")
 DB_PASSWORD = os.getenv("DB_PASSWORD")
 DB_NAME = os.getenv("DB_NAME")
 
+missing = [
+    name
+    for name, val in (
+        ("DB_HOST", DB_HOST),
+        ("DB_USER", DB_USER),
+        ("DB_PASSWORD", DB_PASSWORD),
+        ("DB_NAME", DB_NAME),
+    )
+    if not val
+]
+if missing:
+    raise RuntimeError(f"Missing database config vars: {', '.join(missing)}")
+
 DATABASE_URL = (
     f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:3306/{DB_NAME}"
     "?charset=utf8mb4"
