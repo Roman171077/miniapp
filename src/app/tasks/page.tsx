@@ -13,6 +13,7 @@ import TaskList from "@/components/Task/TaskList";
 import TaskModal from "@/components/Task/TaskModal";
 import CreateTask from "@/components/Task/CreateTask";
 import CreateSubscriber from "@/components/Task/CreateSubscriber";
+import { useUserRole } from "@/context/UserRoleContext";
 
 import {
   utcToLocalInput,
@@ -33,6 +34,8 @@ export default function TasksPage() {
   const [selectedTask, setSelectedTask] = useState<EditableTask | null>(null);
 
   const userId = 1;
+  const { role } = useUserRole();
+  const isAdmin = role === "admin";
 
   const loadExecutors = useCallback(async () => {
     try {
@@ -127,6 +130,7 @@ export default function TasksPage() {
   };
 
   const handleRowClick = (t: any) => {
+    if (!isAdmin) return;
     setSelectedTask({
       ...t,
       _planned_at: t.planned_start_local,
@@ -191,41 +195,43 @@ export default function TasksPage() {
   return (
     <div style={{ padding: 20 }}>
       {/* Full-width New Task button on top */}
-      <div style={{ width: "100%", marginBottom: 20 }}>
-        <button
-          onClick={() => setIsCreating(true)}
-          style={{
-            width: "100%",
-            backgroundColor: "#007bff",
-            color: "#fff",
-            padding: "10px",
-            fontSize: "16px",
-            fontWeight: "bold",
-            border: "none",
-            borderRadius: "4px",
-            cursor: "pointer",
-          }}
-        >
-          + Новая задача
-        </button>
-        <button
-          onClick={() => setIsCreatingSubscriber(true)}
-          style={{
-            width: "100%",
-            backgroundColor: "#28a745",
-            color: "#fff",
-            padding: "10px",
-            fontSize: "16px",
-            fontWeight: "bold",
-            border: "none",
-            borderRadius: "4px",
-            cursor: "pointer",
-          }}
-        >
-          + Новый абонент
-        </button>
+      {isAdmin && (
+        <div style={{ width: "100%", marginBottom: 20 }}>
+          <button
+            onClick={() => setIsCreating(true)}
+            style={{
+              width: "100%",
+              backgroundColor: "#007bff",
+              color: "#fff",
+              padding: "10px",
+              fontSize: "16px",
+              fontWeight: "bold",
+              border: "none",
+              borderRadius: "4px",
+              cursor: "pointer",
+            }}
+          >
+            + Новая задача
+          </button>
+          <button
+            onClick={() => setIsCreatingSubscriber(true)}
+            style={{
+              width: "100%",
+              backgroundColor: "#28a745",
+              color: "#fff",
+              padding: "10px",
+              fontSize: "16px",
+              fontWeight: "bold",
+              border: "none",
+              borderRadius: "4px",
+              cursor: "pointer",
+            }}
+          >
+            + Новый абонент
+          </button>
 
-      </div>
+        </div>
+      )}
 
       {/* Centered bold header */}
       <h1 style={{ textAlign: "center", fontWeight: "bold", margin: "10px 0" }}>
@@ -257,7 +263,7 @@ export default function TasksPage() {
         />
       ))}
 
-      {isCreating && (
+      {isAdmin && isCreating && (
         <CreateTask
           executors={executors}
           subscribers={subscribers}
@@ -268,7 +274,7 @@ export default function TasksPage() {
       )}
 
      {/* Модалка создания подписчика */}
-      {isCreatingSubscriber && (
+      {isAdmin && isCreatingSubscriber && (
         <CreateSubscriber
           onClose={() => setIsCreatingSubscriber(false)}
           onCreated={() => {
@@ -278,7 +284,7 @@ export default function TasksPage() {
         />
       )}
 
-      {!!selectedTask && (
+      {isAdmin && !!selectedTask && (
         <TaskModal
           task={selectedTask}
           executors={executors}
