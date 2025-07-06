@@ -52,8 +52,12 @@ const SubscriberList: React.FC<SubscriberListProps> = ({ subscribers, onSelect }
             <div className="mb-2">
               <span className="font-semibold">Договор: </span>
               <button
-                onClick={() => handleCopy(s.contract_number)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleCopy(s.contract_number);
+                }}
                 className="text-blue-500 hover:underline"
+                type="button"
               >
                 {s.contract_number}
               </button>
