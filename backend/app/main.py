@@ -173,6 +173,17 @@ def add_subscriber(
     # Просто вызываем CRUD прямо, без try/except, чтобы виден был traceback:
     return crud.create_subscriber(db_sess, subscriber)
 
+@app.put("/subscribers/{contract_number}", response_model=schemas.Subscriber)
+def edit_subscriber(
+    contract_number: str,
+    subscriber: schemas.SubscriberUpdate,
+    db_sess: Session = Depends(get_db),
+):
+    updated = crud.update_subscriber(db_sess, contract_number, subscriber)
+    if not updated:
+        raise HTTPException(status_code=404, detail="Subscriber not found")
+    return updated
+
 # ─── Здесь добавляем маршруты для работы с рабочим временем исполнителей ─────
 
 # 1) Получить все записи или отфильтровать по исполнителю и/или дате

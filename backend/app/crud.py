@@ -315,6 +315,21 @@ def create_subscriber(db: Session, subscriber_in: schemas.SubscriberCreate) -> m
     db.refresh(db_subscriber)
     return db_subscriber
 
+def update_subscriber(
+    db: Session,
+    contract_number: str,
+    sub_in: schemas.SubscriberUpdate,
+) -> models.Subscriber | None:
+    db_sub = db.get(models.Subscriber, contract_number)
+    if not db_sub:
+        return None
+    data = sub_in.model_dump(exclude_unset=True)
+    for field, value in data.items():
+        setattr(db_sub, field, value)
+    db.commit()
+    db.refresh(db_sub)
+    return db_sub
+
 # ─── Получить все записи или отфильтровать по исполнителю и/или дате ───────
 def get_executor_work_times(
     db: Session,
