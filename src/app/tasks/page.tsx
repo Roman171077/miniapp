@@ -28,8 +28,7 @@ export default function TasksPage() {
   const [executors, setExecutors] = useState<Executor[]>([]);
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
   const [filterType, setFilterType] = useState<"all" | "service" | "connection" | "incident">("all");
-  const [filterFrom, setFilterFrom] = useState("");
-  const [filterTo, setFilterTo] = useState("");
+  const [filterDate, setFilterDate] = useState("");
   const [loading, setLoading] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [isCreatingSubscriber, setIsCreatingSubscriber] = useState(false);
@@ -198,8 +197,7 @@ export default function TasksPage() {
   const visible = tasks.filter((t) => {
     if (filterType !== "all" && t.type !== filterType) return false;
     const day = t.planned_start.slice(0, 10);
-    if (filterFrom && day < filterFrom) return false;
-    if (filterTo && day > filterTo) return false;
+    if (filterDate && day !== filterDate) return false;
     return true;
   });
   const grouped = groupByDate(visible);
@@ -240,12 +238,12 @@ export default function TasksPage() {
           </select>
         </label>
         <label>
-          От:&nbsp;
-          <input type="date" value={filterFrom} onChange={(e) => setFilterFrom(e.target.value)} />
-        </label>
-        <label>
-          До:&nbsp;
-          <input type="date" value={filterTo} onChange={(e) => setFilterTo(e.target.value)} />
+          Дата:&nbsp;
+          <input
+            type="date"
+            value={filterDate}
+            onChange={(e) => setFilterDate(e.target.value)}
+          />
         </label>
       </div>
 
