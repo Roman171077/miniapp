@@ -13,9 +13,10 @@ const Fade = cssTransition({
 
 interface SubscriberListProps {
   subscribers: Subscriber[]
+  onSelect?: (s: Subscriber) => void
 }
 
-const SubscriberList: React.FC<SubscriberListProps> = ({ subscribers }) => {
+const SubscriberList: React.FC<SubscriberListProps> = ({ subscribers, onSelect }) => {
   const handleCopy = (num: string) => {
     navigator.clipboard.writeText(num).then(() => {
       toast('Номер договора скопирован в буфер обмена', {
@@ -45,7 +46,8 @@ const SubscriberList: React.FC<SubscriberListProps> = ({ subscribers }) => {
         {subscribers.map((s) => (
           <div
             key={s.contract_number}
-            className="p-4 border border-gray-300 rounded-lg shadow-sm"
+            className="p-4 border border-gray-300 rounded-lg shadow-sm cursor-pointer"
+            onClick={() => onSelect?.(s)}
           >
             <div className="mb-2">
               <span className="font-semibold">Договор: </span>
