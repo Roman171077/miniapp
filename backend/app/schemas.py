@@ -298,5 +298,19 @@ class SubscriberCreate(BaseModel):
     # Статус при создании пусть по умолчанию будет "active"
     status: Literal["active", "inactive"] = "active"
 
+class SubscriberUpdate(BaseModel):
+    contract_number: Optional[str] = None
+    surname: Optional[str] = None
+    name: Optional[str] = None
+    patronymic: Optional[str] = None
+    city: Optional[str] = None
+    district: Optional[str] = None
+    street: Optional[str] = None
+    house: Optional[str] = None
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+    yandex_address: Optional[str] = None
+    status: Optional[Literal["active", "inactive"]] = None
+
     model_config = ConfigDict(from_attributes=True)
 
