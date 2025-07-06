@@ -90,6 +90,7 @@ export default function EditSubscriber({ subscriber, onClose, onUpdated }: EditS
     setLoading(true)
     try {
       await updateSubscriber(subscriber.contract_number, {
+        contract_number: form.contract_number,
         surname: form.surname || null,
         name: form.name || null,
         patronymic: form.patronymic || null,
@@ -124,7 +125,12 @@ export default function EditSubscriber({ subscriber, onClose, onUpdated }: EditS
 
         <div className="mb-3">
           <label className="block mb-1 font-medium">Договор:</label>
-          <input type="text" value={form.contract_number} readOnly className="w-full px-2 py-1 border rounded bg-gray-100" />
+          <input
+            type="text"
+            value={form.contract_number}
+            onChange={(e) => handleChange('contract_number', e.target.value)}
+            className="w-full px-2 py-1 border rounded"
+          />
         </div>
 
         <div className="mb-3">
@@ -170,15 +176,34 @@ export default function EditSubscriber({ subscriber, onClose, onUpdated }: EditS
 
         <div className="mb-3">
           <label className="block mb-1 font-medium">Широта:</label>
-          <input type="text" value={coords.latitude.toString()} readOnly className="w-full px-2 py-1 border rounded bg-gray-100" />
+          <input
+            type="text"
+            value={coords.latitude.toString()}
+            onChange={(e) =>
+              setCoords({ ...coords, latitude: parseFloat(e.target.value) || 0 })
+            }
+            className="w-full px-2 py-1 border rounded"
+          />
         </div>
         <div className="mb-3">
           <label className="block mb-1 font-medium">Долгота:</label>
-          <input type="text" value={coords.longitude.toString()} readOnly className="w-full px-2 py-1 border rounded bg-gray-100" />
+          <input
+            type="text"
+            value={coords.longitude.toString()}
+            onChange={(e) =>
+              setCoords({ ...coords, longitude: parseFloat(e.target.value) || 0 })
+            }
+            className="w-full px-2 py-1 border rounded"
+          />
         </div>
         <div className="mb-3">
           <label className="block mb-1 font-medium">Яндекс адрес:</label>
-          <textarea value={fullAddress} readOnly rows={2} className="w-full px-2 py-1 border rounded bg-gray-100 resize-none" />
+          <textarea
+            value={fullAddress}
+            onChange={(e) => setFullAddress(e.target.value)}
+            rows={2}
+            className="w-full px-2 py-1 border rounded resize-none"
+          />
         </div>
 
         <div className="flex justify-end gap-4 mb-3">
