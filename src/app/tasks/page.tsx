@@ -28,6 +28,7 @@ export default function TasksPage() {
   const [executors, setExecutors] = useState<Executor[]>([]);
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
   const [filterType, setFilterType] = useState<"all" | "service" | "connection" | "incident">("all");
+  const [filterDate, setFilterDate] = useState("");
   const [loading, setLoading] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [isCreatingSubscriber, setIsCreatingSubscriber] = useState(false);
@@ -193,8 +194,12 @@ export default function TasksPage() {
 
   if (loading) return <p>Загрузка…</p>;
 
-  const visible =
-    filterType === "all" ? tasks : tasks.filter((t) => t.type === filterType);
+  const visible = tasks.filter((t) => {
+    if (filterType !== "all" && t.type !== filterType) return false;
+    const day = t.planned_start.slice(0, 10);
+    if (filterDate && day !== filterDate) return false;
+    return true;
+  });
   const grouped = groupByDate(visible);
 
   return (
@@ -221,16 +226,33 @@ export default function TasksPage() {
         Задачи
       </h1>
 
-      {/* Filter selector aligned left */}
-      <div className="text-left mb-5">
+      {/* Filters */}
+      <div className="text-left mb-5 flex flex-wrap gap-4 items-center">
         <label>
           Тип:&nbsp;
           <select value={filterType} onChange={(e) => setFilterType(e.target.value as any)}>
             <option value="all">Все</option>
-            <option value="service">Service</option>
-            <option value="connection">Connection</option>
-            <option value="incident">Incident</option>
+            <option value="service">Сервис</option>
+            <option value="connection">Подключение</option>
+            <option value="incident">Авария</option>
           </select>
+        </label>
+        <label className="flex items-center">
+          Дата:&nbsp;
+          <input
+            type="date"
+            value={filterDate}
+            onChange={(e) => setFilterDate(e.target.value)}
+          />
+          {filterDate && (
+            <button
+              type="button"
+              onClick={() => setFilterDate("")}
+              className="ml-2 px-2 text-sm text-red-600"
+            >
+              ×
+            </button>
+          )}
         </label>
       </div>
 
