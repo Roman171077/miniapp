@@ -4,6 +4,7 @@ import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { getSubscribers } from "@/lib/api/tasks";
 import { Subscriber } from "@/lib/types";
 import SubscriberList from "@/components/Task/SubscriberList";
+import EditSubscriber from "@/components/Task/EditSubscriber";
 
 /* ---------- helpers ---------- */
 const normalize = (s: string) => s.toLowerCase().replace(/[\s,.-]/g, "");
@@ -47,18 +48,21 @@ export default function SubscribersSearchTwoField() {
 
   const [addrKey, setAddrKey] = useState<string | null>(null);
   const [filtered, setFiltered] = useState<Subscriber[]>([]);
+  const [selected, setSelected] = useState<Subscriber | null>(null);
 
   /* ---------- загрузка ---------- */
-  useEffect(() => {
-    (async () => {
-      setLoading(true);
-      const data   = await getSubscribers();
-      const sorted = [...data].sort(cmpSubs);  // единожды сортируем
-      setSubs(sorted);
-      setFiltered(sorted);
-      setLoading(false);
-    })();
+  const loadSubscribers = useCallback(async () => {
+    setLoading(true);
+    const data = await getSubscribers();
+    const sorted = [...data].sort(cmpSubs);
+    setSubs(sorted);
+    setFiltered(sorted);
+    setLoading(false);
   }, []);
+
+  useEffect(() => {
+    loadSubscribers();
+  }, [loadSubscribers]);
 
   /* ---------- shortList + houseMap ---------- */
   const { shortList, houseMap } = useMemo(() => {
@@ -257,7 +261,18 @@ export default function SubscribersSearchTwoField() {
       </button>
 
       {/* список абонентов */}
-      <SubscriberList subscribers={filtered} />
+      <SubscriberList subscribers={filtered} onSelect={setSelected} />
+
+      {selected && (
+        <EditSubscriber
+          subscriber={selected}
+          onClose={() => setSelected(null)}
+          onUpdated={() => {
+            loadSubscribers();
+            setSelected(null);
+          }}
+        />
+      )}
     </div>
   );
 }

@@ -175,6 +175,31 @@ export async function createSubscriber(
   return res.json();
 }
 
+// Данные для обновления подписчика
+export type UpdateSubscriberData = Partial<CreateSubscriberData>
+
+/**
+ * Обновляет существующего подписчика.
+ */
+export async function updateSubscriber(
+  contractNumber: string,
+  data: UpdateSubscriberData
+): Promise<Subscriber> {
+  const res = await fetch(`${BASE}/subscribers/${contractNumber}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+    credentials: "include",
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Не удалось обновить подписчика: ${res.status} ${text}`);
+  }
+  return res.json();
+}
+
 // ───────────────────────────────────────────────────────────────────────────────
 // Методы для работы с рабочим временем исполнителей
 // ───────────────────────────────────────────────────────────────────────────────
